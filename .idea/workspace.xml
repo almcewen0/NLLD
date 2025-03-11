@@ -4,22 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fa51c3c4-817b-4494-bbcf-ae1eb6d255e8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/NLLD.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/PKG-INFO" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/SOURCES.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/dependency_links.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/entry_points.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/requires.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NLLD.egg-info/top_level.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nlld/ags_iss.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nlld/ags_iss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nlld/compare_mkfs_undershoots.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nlld/compare_mkfs_undershoots.py" afterDir="false" />
-    </list>
+    <list default="true" id="fa51c3c4-817b-4494-bbcf-ae1eb6d255e8" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -81,7 +66,7 @@
       <workItem from="1740031612122" duration="4828000" />
       <workItem from="1740039863332" duration="197000" />
       <workItem from="1740058396297" duration="3246000" />
-      <workItem from="1741291462748" duration="16205000" />
+      <workItem from="1741291462748" duration="17010000" />
     </task>
     <servers />
   </component>
