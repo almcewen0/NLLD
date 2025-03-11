@@ -1,4 +1,0 @@
-[console_scripts]
-ags3withbrightearth = nlld.ags_iss:main
-comparemkfs = nlld.compare_mkfs_undershoots:main
-mkfdiagnostics = nlld.mkfdiagnostics:main

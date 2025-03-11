@@ -1,6 +1,0 @@
-astroplan
-astropy
-numpy
-matplotlib
-scipy
-seaborn

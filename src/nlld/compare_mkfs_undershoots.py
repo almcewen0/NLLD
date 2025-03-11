@@ -9,7 +9,7 @@ import seaborn as sns
 
 from nlld.nicermkf import MkfFileOps, define_nicerdetloc
 from nlld.mkfdiagnostics import mkf_diagnostics, creatediagnosticsplots_od, creatediagnosticsplots_on
-from nlld.nicerutil_logging import get_logger
+from nlld.nlld_logging import get_logger
 
 import sys
 import argparse
