@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "NLLD"
+version = "0.0.1"
+dependencies = [
+  "astroplan",
+  "astropy",
+  "numpy",
+  "matplotlib",
+  "scipy",
+  "seaborn"
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "George Younes", email = "george.a.younes@nasa.gov"},
+]
+maintainers = [
+  {name = "George Younes", email = "george.a.younes@nasa.gov"}
+]
+description = "Codes that aided in diagnosing the nicer light-leak and informing some mitigation"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+keywords = ["NICER", "High Energy Astrophysics", "X-ray", "Astronomy", "Astrophysics", "Light-leak", "Mitigation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python"
+]
+
+[project.scripts]
+mkfdiagnostics = "nlld.mkfdiagnostics:main"
+comparemkfs = "nlld.compare_mkfs_undershoots:main"
+ags3withbrightearth = "nlld.ags_iss:main"
