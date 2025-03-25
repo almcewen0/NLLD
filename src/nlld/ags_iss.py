@@ -79,7 +79,41 @@ def read_ags3_vis_file(ags3_vis_file):
     df_nicer_vis['vis_start'] = pd.to_datetime(df_nicer_vis['vis_start'], format='%Y-%jT%H:%M:%S', utc=True)
     df_nicer_vis['vis_end'] = pd.to_datetime(df_nicer_vis['vis_end'], format='%Y-%jT%H:%M:%S', utc=True)
 
-    return df_nicer_vis
+    # Remove leading/trailing whitespaces from target name, just in case
+    df_nicer_vis['target_name'] = df_nicer_vis['target_name'].str.strip()
+
+    # Drop duplicates of exact target_name and start or end of visibility windows, keep first
+    # warning: these targets have different target_IDs, only first ID kept
+    mask = (df_nicer_vis.duplicated(subset=['target_name', 'vis_start']) |
+            df_nicer_vis.duplicated(subset=['target_name', 'vis_end']))
+    df_nicer_vis_nosrcdulpicate = df_nicer_vis[~mask]
+
+    return df_nicer_vis, df_nicer_vis_nosrcdulpicate
+
+
+def read_target_catalog(targetcatalog):
+    """
+    Read-in a NICER target catalog
+    :param targetcatalog: NICER visibility file
+    :type targetcatalog: str
+    :return df_nicer_catalog: NICER catalog
+    :rtype: pandas.DataFrame
+    """
+    # Use the third row as column names
+    column_names = pd.read_csv(targetcatalog, skiprows=2, nrows=1, header=None).values[0]
+
+    # Read the remaining data, skipping the first three rows
+    targetcat_df = pd.read_csv(targetcatalog, skiprows=3, header=None, names=column_names, index_col=0)
+    # Remove leading/trailing whitespaces from target name
+    targetcat_df['Source'] = targetcat_df['Source'].str.strip()
+
+    # Remove duplicates from target catalog dataframe according to 'Source' column (source name)
+    targetcat_df_nosourceduplicates = targetcat_df.drop_duplicates(subset='Source', keep='first')
+
+    # Header of dataframe
+    targetcat_header = pd.read_csv(targetcatalog, nrows=2, header=None, names=column_names, index_col=0)
+
+    return targetcat_df, targetcat_df_nosourceduplicates, targetcat_header
 
 
 def ags_update_persource(iss_oem_ephem, df_nicer_vis, srcname, srcRA, srcDEC, daysafter=1):
@@ -102,10 +136,11 @@ def ags_update_persource(iss_oem_ephem, df_nicer_vis, srcname, srcRA, srcDEC, da
     """
 
     # Filter for source
-    nicer_vis_windows = df_nicer_vis[df_nicer_vis['target_name'].str.contains(srcname)].reset_index(drop=True)
+    nicer_vis_windows = df_nicer_vis[df_nicer_vis['target_name'].str.contains(srcname, regex=False)].reset_index(
+        drop=True)
 
     # Calculate orbit information (day/night/both) for each visibility window
-    nicer_vis_windows_orbit = observing_geometry.iss_islit(nicer_vis_windows, iss_oem_ephem)
+    nicer_vis_windows_orbit = observing_geometry.viswindow_islit(nicer_vis_windows, iss_oem_ephem)
 
     nicer_vis_windows_orbitday = nicer_vis_windows_orbit[nicer_vis_windows_orbit['orbit'] ==
                                                          'o_d'].reset_index(drop=True)

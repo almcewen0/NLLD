@@ -10,7 +10,7 @@ def get_logger(name):
 
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
-    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setLevel(logging.WARNING)
 
     fileHandler = logging.FileHandler('nicerutil.log')
     fileHandler.setFormatter(logFormatter)
