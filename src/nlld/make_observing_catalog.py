@@ -53,7 +53,7 @@ def build_catalogs(survey='both'):
 
         tmp = open("source_catalogs/4XMM_targets.csv",'w')
         tmp.write("id,src,ra,dec,name,propnum,targnum,maxflux\n")
-        for ln in catalog_4xmm_dr13:
+        for ln in catalog_4xmm_dr13[np.argsort(catalog_4xmm_dr13)[::-1]]:
             tmp.write(f"{ln['SRCID']},{ln['IAUNAME'].replace(' ','_')}," + \
                       f"{ln['RA']},{ln['DEC']},OID{ln['OBS_ID']},,,{ln['MAXFLUX']}\n")
         tmp.close()
@@ -106,14 +106,14 @@ def build_catalogs(survey='both'):
         tmp.close()
 
 
-def filter_data(ra,dec,region,region_size,survey,fluxlim=1e-12,build=False):
+def filter_data(ra,dec,region,region_size,ralim,declim,survey,fluxlim=1e-12,build=False):
     """
     Filter survey catalogs to find sources in a provided region.
 
     Inputs
     ======
     ra, dec [float] : coordinates [degrees] of the region's center point
-    region [str] : either 'circle' or 'ra_strip', where the latter covers all 
+    region [str] : either 'circle' or 'box', where the latter covers all 
                    declinations within ra-region_size <= ra <= ra+region_size
     region_size [float] : either the radius or the width of the strip in
                           arcminutes
@@ -149,10 +149,18 @@ def filter_data(ra,dec,region,region_size,survey,fluxlim=1e-12,build=False):
         s = SkyCoord(subtab['ra'],subtab['dec'],frame='icrs',unit='deg')
         if region == 'circle':
             pos_cnd = s.separation(center) < region_size*u.arcmin
-        elif region == 'ra_strip':
-            pos_cnd = (s.ra-center.ra)*np.cos(s.dec.to('rad')) < region_size*u.arcmin
+        elif region == 'box':
+            pos_cnd = np.ones(len(s)).astype(bool)
+            if ralim[0] is not None:
+                pos_cnd = pos_cnd & np.array(s.ra.to('deg')*np.cos(s.dec.to('rad')) > ralim[0]*u.deg)
+            if ralim[1] is not None:
+                pos_cnd = pos_cnd & np.array(s.ra.to('deg')*np.cos(s.dec.to('rad')) < ralim[1]*u.deg)
+            if declim[0] is not None:
+                pos_cnd = pos_cnd&np.array(s.dec.to('deg') > declim[0]*u.deg)
+            if declim[1] is not None:
+                pos_cnd = pos_cnd&np.array(s.dec.to('deg') < declim[1]*u.deg)
         else:
-            raise ValueError("Region must be either 'circle' or 'ra_strip'")
+            raise ValueError("Region must be either 'circle' or 'box'")
         flux_cnd = subtab['maxflux'] >= fluxlim
         cnd = flux_cnd & pos_cnd
         outdata[fil.rstrip('csv')] = subtab[cnd]
@@ -225,30 +233,28 @@ def main():
     parser.add_argument('-m','--mode',required=True,
                         help="Choose mode of target generation ['random','from_cat']",
                         default='random',type=str)
-    parser.add_argument("-ra", 
+    parser.add_argument("-ra","--target_ra", 
                         help="['from_cat'] Center RA for target list [deg]", 
                         type=float)
-    parser.add_argument("-dec", 
+    parser.add_argument("-dec","--target_dec", 
                         help="['from_cat'] Center Declination for target list [deg]", 
                         type=float)
-    parser.add_argument("-reg",
-                        help="['from_cat'] Shape of target region ['circle','ra_strip'], default circle",
+    parser.add_argument("-reg","--region_shape",
+                        help="['from_cat'] Shape of target region ['circle','box'], default circle",
                         default='circle',type=str)
-    parser.add_argument("-s",
-                       help="['from_cat'] Region size in arcminutes, default 15. If region " + \
-                            'is circular, this corresponds to the radius; ' + \
-                            'otherwise, it is the width of the strip',
+    parser.add_argument("-s","--region_size",
+                       help="['from_cat'] Radius of circular region in arcminutes, default 15.",
                        type=float,default=15)
-    parser.add_argument("-fl",
+    parser.add_argument("-fl","--limiting_flux",
                         help="['from_cat'] Flux limit in ergs/s/cm^2 (Note: catalogs have" + \
                              "already been stripped of sources below 1e-12)",
                         default=1e-12,type=float)
-    parser.add_argument("-b",
+    parser.add_argument("-b","--build_tables",
                         help="['from_cat'] Flag to build databases from scratch if they" + \
                         "don't already exist",
                         type=bool,default=False,
                         action = argparse.BooleanOptionalAction)
-    parser.add_argument("-u",
+    parser.add_argument("-u",'--survey',
                         help="['from_cat'] Survey to draw targets from " + \
                              "['4xmm','erosita','both'], default is 'both'",
                         type=str,default='both')
@@ -258,16 +264,16 @@ def main():
     parser.add_argument("-ra_max", 
                         help="['random'] Maximum right ascension in degrees J2000", 
                         default=None,type=float)
-    parser.add_argument("-dec_min", 
-                        help="['random'] Minimum declination in degrees DE2000", 
-                        default=None,type=float)
-    parser.add_argument("-dec_max", 
-                        help="['random'] Maximum declination in degrees DE2000", 
-                        default=None,type=float)
     parser.add_argument("-np", "--n_points", 
                         help="['random'] Number of random pointings to generate (default = 10)",
                         type=int, default=None)
-    parser.add_argument("-f",
+    parser.add_argument("-dec_min", 
+                        help="Minimum declination in degrees DE2000", 
+                        default=None,type=float)
+    parser.add_argument("-dec_max", 
+                        help="Maximum declination in degrees DE2000", 
+                        default=None,type=float)
+    parser.add_argument("-f","--output_file",
                         help="Output file name prefix (will be appended with each" + \
                              "catalog name and csv extension)",
                         default='targets',type=str)
@@ -282,13 +288,15 @@ def main():
                                          args.dec_min, args.dec_max, 
                                          n_points=args.n_points)
     elif args.mode == 'from_cat':
-        if None in [args.ra, args.dec, args.reg, args.s, args.fl, args.b]:
+        if None in [args.target_ra, args.target_dec, args.region_shape,
+                    args.region_size, args.limiting_flux, args.build_tables]:
             raise ValueError("For from_cat mode, must specify ra, dec, reg, " + \
                                "s, fl, and b values.")
-        data = filter_data(args.ra, args.dec,
-                           args.reg, args.s, args.u, 
-                           args.fl, args.b)
-    make_target_files(data,args.f) 
+        data = filter_data(args.target_ra, args.target_dec, args.region_shape, args.region_size, 
+                           [args.ra_min, args.ra_max] , 
+                           [args.dec_min,args.dec_max],
+                           args.survey, args.limiting_flux, args.build_tables)
+    make_target_files(data,args.output_file) 
 
 if __name__ == "__main__":
     main()
