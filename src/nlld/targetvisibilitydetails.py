@@ -474,8 +474,15 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
                 # Let's do a continuous scale from 40..150. We'll use Matplotlib for convenience
                 br_val = group_target_od.loc[i, 'brightearth']
 
+                #cmap = colormaps['Set1']
+                #norm = mcolors.Normalize(vmin=40, vmax=150)
+                #rgba = cmap(norm(br_val))  # returns (r, g, b, a)
+                #color_hex = mcolors.to_hex(rgba)
+
                 cmap = colormaps['Set1']
-                norm = mcolors.Normalize(vmin=40, vmax=150)
+                boundaries = [40, 60, 70, 80, 90, 100, 110, 120, 130, 180]
+                # ncolors should typically match the number of intervals (here 9 intervals)
+                norm = mcolors.BoundaryNorm(boundaries, ncolors=cmap.N, clip=True)
                 rgba = cmap(norm(br_val))  # returns (r, g, b, a)
                 color_hex = mcolors.to_hex(rgba)
 

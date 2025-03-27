@@ -12,8 +12,8 @@ import pandas as pd
 catalog_name = 'NICER2_Xray_Target_List_V42t.csv.gz'
 ags3 = 'AGS3_LTVIS_report_20250801400_20250951200_V01.txt.gz'
 iss_orbit_file = 'ISS.OEM_J2K_EPH.txt'
-start_time = '2025-085T18:00:00'
-end_time = '2025-085T19:30:00'
+start_time = '2025-095T02:57:00'
+end_time = '2025-095T03:58:00'
 
 df_nicer_vis_timeflt, target_brightearth_all_df, target_od_startend_times_all = (
     targetvisibilitydetails.visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time,
@@ -68,7 +68,7 @@ def update_page(prev_clicks, next_clicks, current_page):
     filtered_brightearth = target_brightearth_all_df[target_brightearth_all_df['srcname'].isin(filtered_targets)]
     filtered_od_startend = target_od_startend_times_all[
         target_od_startend_times_all['target_name'].isin(filtered_targets)]
-    
+
     # Ensure that you pass all required parameters.
     fig = targetvisibilitydetails.visibilityplot_plotly(
         filtered_nicer_vis,

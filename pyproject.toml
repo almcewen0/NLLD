@@ -12,7 +12,8 @@ dependencies = [
   "matplotlib",
   "scipy",
   "seaborn",
-  "xlsxwriter"
+  "xlsxwriter",
+  "joblib"
 ]
 requires-python = ">=3.8"
 authors = [
