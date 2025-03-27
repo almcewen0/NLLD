@@ -13,7 +13,13 @@ dependencies = [
   "scipy",
   "seaborn",
   "xlsxwriter",
+<<<<<<< HEAD
   "joblib"
+=======
+  "joblib",
+  "selenium",
+  "webdriver_manager"
+>>>>>>> b5bca0714e00026131727f842aaa4c1cd31e1fe1
 ]
 requires-python = ">=3.8"
 authors = [
@@ -37,3 +43,5 @@ comparemkfs = "nlld.compare_mkfs_undershoots:main"
 ags3withbrightearth = "nlld.ags_iss:main"
 orbitinfo_targetcat = "nlld.orbitinfo_targetcat:main"
 targetvisibilities = "nlld.targetvisibilitydetails:main"
+createvisibilities = "nlld.createvisibilities:main"
+buildtargetcatalog = "nlld.make_observing_catalogs:main"

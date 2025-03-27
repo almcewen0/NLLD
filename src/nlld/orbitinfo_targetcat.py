@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 def orbitinfo_targetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time):
     """
-    Read-in ISS OEM ephemeris as a dataframe
+    Add orbit info and sun angle to target catalog
     :param catalog_name: NICER visibility file
     :type catalog_name: str
     :param ags3: NICER visibility file
@@ -127,6 +127,8 @@ def main():
 
     output_targetcatalog = args.catalog_name.split('.')[0] + '.xlsx'
     print('Script ran to completion. Please check {} for output.'.format(output_targetcatalog))
+
+    return None
 
 
 if __name__ == '__main__':

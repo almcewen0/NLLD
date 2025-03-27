@@ -85,7 +85,7 @@ def iss_islit(times, issorbitdata):
     """
     Calculates whether ISS is in orbit day or night depending on certain times
     :param times: Pandas series of times in isot format, utc (dtype: datetime64[ns, UTC])
-    :type times: pandas.Series
+    :type times: pandas.DatetimeIndex
     :param issorbitdata: iss times and coordinate data from OEM ephem file
     :type issorbitdata: pandas.DataFrame
     :return iss_islit: Pandas series of orbit day (1) or night (0)
