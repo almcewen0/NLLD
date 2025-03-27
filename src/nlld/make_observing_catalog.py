@@ -11,8 +11,9 @@ from subprocess import call
 
 def build_catalogs(survey='both'):
     """
-    Read source data from (preexisting) survey catalog files. If files don't
-    exist, attempt to download and build them. These catalogs are hard-
+    Read source data from full survey files. If files don't
+    exist, attempt to download. A pared down catalog is produced from these, 
+    which will be read in the future. These catalogs are hard-
     coded to omit sources without published fluxes above 1e-12 erg/s/cm^2 
     in any observing band, and sources within 3 arcminutes of known NICER
     targets are also omitted. Missing values are filtered out of all 
@@ -107,6 +108,25 @@ def build_catalogs(survey='both'):
 
 
 def filter_data(ra,dec,region,region_size,fluxlim=1e-12,build=False):
+    """
+    Filter survey catalogs to find sources in a provided region.
+
+    Inputs
+    ======
+    ra, dec [float] : coordinates [degrees] of the region's center point
+    region [str] : either 'circle' or 'ra_strip', where the latter covers all 
+                   declinations within ra-region_size <= ra <= ra+region_size
+    region_size [float] : either the radius or the width of the strip in
+                          arcminutes
+    fluxlim [float] : minimum catalog source flux [erg/s/cm^2] to be included 
+                       in target list
+    build [bool] : if True and source catalogs don't exist, will attempt to
+                   download and build them
+
+    Returns
+    =======
+    outdata [dict] : contains matching sources for each of the included survey files
+    """
     center = SkyCoord(ra,dec,frame='icrs',unit='deg')
     outdata = {}
     for fil in ["source_catalogs/eROSITA_targets.csv","source_catalogs/4XMM_targets.csv"]:
@@ -134,6 +154,16 @@ def filter_data(ra,dec,region,region_size,fluxlim=1e-12,build=False):
 
     
 def make_target_files(data,outfile):
+    """
+    Write out target lists in NICER format.
+
+    Inputs
+    ======
+    data [dict] : contains sources to be written (this is the output from
+                  filter_data)
+    outfile [str] : prefix of the output file list; survey and today's date
+                    will also be added to this name
+    """
     targetfile_preface = "NICER/SEXTANT/OHMAN Target IDs and Names,,,,,,\n" + \
                          "Flight v42s;3/15/25,,,,,,\n" + \
                          "ID,Source,RAJ_DEG,DECJ_DEG,Other Names,Proposal number,Target number\n"
@@ -168,20 +198,21 @@ def main():
                         type=float
                         )
     parser.add_argument("-reg",
-                        help="Shape of target region ['circle','ra_strip']",
+                        help="Shape of target region ['circle','ra_strip'], default circle",
                         default='circle',
                         type=str
                         )
 
     parser.add_argument("-s",
-                       help='Region size in arcminutes. If circular, this corresponds ' + \
-                            'to the radius; otherwise, it is the width of the strip',
+                       help='Region size in arcminutes, default 15. If region ' + \
+                            'is circular, this corresponds to the radius; ' + \
+                            'otherwise, it is the width of the strip',
                        type=float,
                        default=15
                        )
 
     parser.add_argument("-f",
-                        help="Output file name (will be appended with each" + \
+                        help="Output file name prefix (will be appended with each" + \
                              "catalog name and csv extension)",
                         default='targets',
                         type=str
