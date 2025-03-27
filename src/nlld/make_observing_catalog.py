@@ -32,7 +32,6 @@ def build_catalogs(survey='both'):
             print("Downloading 4XMM catalog")
             call("curl -o 4XMM_DR13cat_v1.0.fits.gz " + \
             "http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR13/4XMM_DR13cat_v1.0.fits.gz",shell=True)
-            call("tar xf 4XMM_DR13cat_v1.0.fits.gz; rm 4XMM_DR13cat_v1.0.fits.gz",shell=True)
             call("mv 4XMM_DR13cat_v1.0* source_catalogs/4XMM_DR13cat_v1.0_full.fits",shell=True)
             
         catalog_4xmm_dr13 = Table.read("source_catalogs/4XMM_DR13cat_v1.0_full.fits")
