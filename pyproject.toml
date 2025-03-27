@@ -13,13 +13,9 @@ dependencies = [
   "scipy",
   "seaborn",
   "xlsxwriter",
-<<<<<<< HEAD
-  "joblib"
-=======
   "joblib",
   "selenium",
   "webdriver_manager"
->>>>>>> b5bca0714e00026131727f842aaa4c1cd31e1fe1
 ]
 requires-python = ">=3.8"
 authors = [
