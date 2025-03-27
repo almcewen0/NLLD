@@ -4,14 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "NLLD"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
   "astroplan",
   "astropy",
   "numpy",
   "matplotlib",
   "scipy",
-  "seaborn"
+  "seaborn",
+  "xlsxwriter",
+  "joblib",
+  "selenium",
+  "webdriver_manager"
 ]
 requires-python = ">=3.8"
 authors = [
@@ -33,3 +37,7 @@ classifiers = [
 mkfdiagnostics = "nlld.mkfdiagnostics:main"
 comparemkfs = "nlld.compare_mkfs_undershoots:main"
 ags3withbrightearth = "nlld.ags_iss:main"
+orbitinfo_targetcat = "nlld.orbitinfo_targetcat:main"
+targetvisibilities = "nlld.targetvisibilitydetails:main"
+createvisibilities = "nlld.createvisibilities:main"
+buildtargetcatalog = "nlld.make_observing_catalogs:main"
