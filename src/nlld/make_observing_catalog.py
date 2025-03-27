@@ -163,9 +163,6 @@ def make_target_files(data,outfile):
     outfile [str] : prefix of the output file list; survey and today's date
                     will also be added to this name
     """
-    targetfile_preface = "NICER/SEXTANT/OHMAN Target IDs and Names,,,,,,\n" + \
-                         "Flight v42s;3/15/25,,,,,,\n" + \
-                         "ID,Source,RAJ_DEG,DECJ_DEG,Other Names,Proposal number,Target number\n"
     today = dt.datetime.today()
     today = f"{str(today.month).zfill(2)}{str(today.day).zfill(2)}{today.year}"
     for key in data.keys():
@@ -174,66 +171,110 @@ def make_target_files(data,outfile):
             continue
         else:
                 tmp = open(f"{outfile}_{key.split('/')[-1].split('_')[0]}_{today}.csv",'w')
-                tmp.write(targetfile_preface)
                 for ln in data[key].to_numpy():
                     tmp.write(f"{ln[0]},{ln[1]},{ln[2]},{ln[3]},,\n")
         tmp.close()
 
+def generate_random_pointings(ra_min, ra_max, dec_min, dec_max, n_points=10):
+    """
+    Generate random sky pointings (RA/Dec in degrees, J2000) and write to a file.
+    :param ra_min: Minimum right ascension in degrees
+    :type ra_min: float
+    :param ra_max: Maximum right ascension in degrees
+    :type ra_max: float
+    :param dec_min: Minimum declination in degrees
+    :type dec_min: float
+    :param dec_max: Maximum declination in degrees
+    :type dec_max: float
+    :param outputFile: Name of output csv random pointings
+    :type outputFile: str
+    :param n_points: Number of random pointings to generate
+    :type n_points: int
+    :return data: contains targets for the make_target_files function
+    :type data: dict()
+    """
+    ra_random = np.random.uniform(ra_min, ra_max, n_points)
+    dec_random = np.random.uniform(dec_min, dec_max, n_points)
+    data = {'random' : pd.DataFrame(
+                           np.array([
+                                    np.arange(len(ra_random)),
+                                    [f'src_{n}' for n in np.arange(len(ra_random))],
+                                    ra_random,
+                                    dec_random]
+                                    ).T,
+                           columns=['id','src','ra','dec']
+                           )
 
+    return data
 
 
 def main():
     parser = argparse.ArgumentParser(
                  description="Generate target lists for NICER using X-ray source catalogs")
 
+    parser.add_argument('-m',
+                        help="Choose mode of target generation ['random','from_cat']",
+                        default='random',type=str)
     parser.add_argument("-ra", 
-                        help="Center RA for target list [deg]", 
-                        required=True,
-                        type=float
-                        )
+                        help="['from_cat'] Center RA for target list [deg]", 
+                        type=float)
     parser.add_argument("-dec", 
-                        help="Center Declination for target list [deg]", 
-                        required=True,
-                        type=float
-                        )
+                        help="['from_cat'] Center Declination for target list [deg]", 
+                        type=float)
     parser.add_argument("-reg",
-                        help="Shape of target region ['circle','ra_strip'], default circle",
-                        default='circle',
-                        type=str
-                        )
-
+                        help="['from_cat'] Shape of target region ['circle','ra_strip'], default circle",
+                        default='circle',type=str)
     parser.add_argument("-s",
-                       help='Region size in arcminutes, default 15. If region ' + \
+                       help="['from_cat'] Region size in arcminutes, default 15. If region " + \
                             'is circular, this corresponds to the radius; ' + \
                             'otherwise, it is the width of the strip',
-                       type=float,
-                       default=15
-                       )
-
+                       type=float,default=15)
     parser.add_argument("-f",
                         help="Output file name prefix (will be appended with each" + \
                              "catalog name and csv extension)",
-                        default='targets',
-                        type=str
-                        )
-
+                        default='targets',type=str)
     parser.add_argument("-fl",
-                        help="Flux limit in ergs/s/cm^2 (Note: catalogs have" + \
+                        help="['from_cat'] Flux limit in ergs/s/cm^2 (Note: catalogs have" + \
                              "already been stripped of sources below 1e-12)",
-                        default=1e-12,
-                        type=float
-                        )
+                        default=1e-12,type=float)
     parser.add_argument("-b",
-                        help="Flag to build databases from scratch if they" + \
+                        help="['from_cat'] Flag to build databases from scratch if they" + \
                         "don't already exist",
-                        type=bool,
-                        default=False,
-                        action = argparse.BooleanOptionalAction
-                        )
+                        type=bool,default=False,
+                        action = argparse.BooleanOptionalAction)
+    parser.add_argument("ra_min", 
+                        help="['random'] Minimum right ascension in degrees J2000", 
+                        type=float)
+    parser.add_argument("ra_max", 
+                        help="['random'] Maximum right ascension in degrees J2000", 
+                        type=float)
+    parser.add_argument("dec_min", 
+                        help="['random'] Minimum declination in degrees DE2000", 
+                        type=float)
+    parser.add_argument("dec_max", 
+                        help="['random'] Maximum declination in degrees DE2000", 
+                        type=float)
+    parser.add_argument("-np", "--n_points", 
+                        help="['random'] Number of random pointings to generate (default = 10)",
+                        type=int, default=10)
 
 
     args = parser.parse_args()
-    data = filter_data(args.ra,args.dec,args.reg,args.s,args.fl,args.b)
+    if args.mode == 'random':
+        if None in [args.ra_min, args.dec_min, args.ra_max, args.dec_max, args.n_points]:
+            raise InputWarning("For random mode, must specify ra_min, ra_max, " + \
+                               "dec_min, dec_max, and n_points values.")
+        data = generate_random_pointings(args.ra_min, args.ra_max,
+                                         args.dec_min, args.dec_max, 
+                                         outputFile=args.f,
+                                         n_points=args.n_points)
+    elif args.mode == 'from_cat':
+        if None in [args.ra, args.dec, args.reg, args.s, args.fl, args.b]:
+            raise InputWarning("For from_cat mode, must specify ra, dec, reg, " + \
+                               "s, fl, and b values.")
+        data = filter_data(args.ra, args.dec,
+                           args.reg, args.s,
+                           args.fl, args.b)
     make_target_files(data,args.f) 
 
 if __name__ == "__main__":
