@@ -280,14 +280,13 @@ def main():
                                "dec_min, dec_max, and n_points values.")
         data = generate_random_pointings(args.ra_min, args.ra_max,
                                          args.dec_min, args.dec_max, 
-                                         outputFile=args.f,
                                          n_points=args.n_points)
     elif args.mode == 'from_cat':
         if None in [args.ra, args.dec, args.reg, args.s, args.fl, args.b]:
             raise ValueError("For from_cat mode, must specify ra, dec, reg, " + \
                                "s, fl, and b values.")
         data = filter_data(args.ra, args.dec,
-                           args.reg, args.s,
+                           args.reg, args.s, args.u, 
                            args.fl, args.b)
     make_target_files(data,args.f) 
 
