@@ -161,10 +161,10 @@ def orbittimes(start_time, end_time, freq_bound):
     """
     Create timestamps between start_time and end_time
     :param start_time: Start time in format ('%Y-%jT%H:%M:%S', e.g., 2025-075T00:00:00)
-    :type start_time: str
+    :type start_time: pandas.Timestamp
     :param end_time: End time in format ('%Y-%jT%H:%M:%S', e.g., 2025-076T00:00:00) -
     best if start_time and end_times are at a 1-minute resolution
-    :type end_time: str
+    :type end_time: pandas.Timestamp
     :param freq_bound: frequency of timestamps between start_time and end_time in seconds
     :type freq_bound: int
     :return orbit_times: Orbit times
@@ -224,10 +224,10 @@ def filtertime_nicervis(start_time, end_time, df_nicer_vis):
     """
 
     :param start_time: Start time in format ('%Y-%jT%H:%M:%S', e.g., 2025-075T00:00:00)
-    :type start_time: str
+    :type start_time: pandas.Timestamp
     :param end_time: End time in format ('%Y-%jT%H:%M:%S', e.g., 2025-076T00:00:00) -
     best if start_time and end_times are at a 1-minute resolution
-    :type end_time: str
+    :type end_time: pandas.Timestamp
     :param df_nicer_vis: dataframe of nicer visibility windows (AGS 3 file)
     :type: pandas.DataFrame
     :return df_nicer_vis_timefilt: time-filtered visibility table
@@ -366,9 +366,9 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
     :param alltargets_od_startend_times: per target orbit-day start-end times visibility windows
     :type alltargets_od_startend_times: pandas.DataFrame
     :param start_time: Start time of visibility window
-    :type start_time: pandas.DatetimeIndex
+    :type start_time: pandas.Timestamp
     :param end_time: End time of visibility window
-    :type end_time: pandas.DatetimeIndex
+    :type end_time: pandas.Timestamp
     :param freq_bound: frequency of timestamps between start_time and end_time in seconds
     :type freq_bound: int
     :param outputFile: name of output file (default = "visibilityplot")
@@ -563,6 +563,8 @@ def main():
     execution_end_time = time.time()
     print(' Script ran to completion in {} minutes.\n Please check {}.html for the visibility plot'.format(
         (execution_end_time - execution_start_time) / 60, args.outputFile))
+
+    return None
 
 
 if __name__ == '__main__':
