@@ -11,11 +11,7 @@ dependencies = [
   "numpy",
   "matplotlib",
   "scipy",
-  "seaborn",
-  "xlsxwriter",
-  "joblib",
-  "selenium",
-  "webdriver_manager"
+  "seaborn"
 ]
 requires-python = ">=3.8"
 authors = [
@@ -36,8 +32,3 @@ classifiers = [
 [project.scripts]
 mkfdiagnostics = "nlld.mkfdiagnostics:main"
 comparemkfs = "nlld.compare_mkfs_undershoots:main"
-ags3withbrightearth = "nlld.ags_iss:main"
-orbitinfo_targetcat = "nlld.orbitinfo_targetcat:main"
-targetvisibilities = "nlld.targetvisibilitydetails:main"
-createvisibilities = "nlld.createvisibilities:main"
-buildtargetcatalog = "nlld.make_observing_catalogs:main"
