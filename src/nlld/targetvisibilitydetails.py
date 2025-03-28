@@ -32,7 +32,7 @@ logger = get_logger(__name__)
 
 
 def visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time, freq_bound=60,
-                        freq_brearth=240, sa_ll=70, sa_ul=180, outputFile='visibilityplot'):
+                        freq_brearth=240, sa_ll=70, sa_ul=180, outputFile='visibilityplot', saveresults=False):
     """
     Read-in ISS OEM ephemeris as a dataframe
     :param catalog_name: NICER target catalog file
@@ -55,6 +55,8 @@ def visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time
     :type freq_brearth: int
     :param outputFile: name of output file (default = "visibilityplot")
     :type outputFile: str
+    :param saveresults: Boolean to save dataframes to csv files (default = "False")
+    :type saveresults: bool
     """
 
     # Reading target catalog
@@ -94,9 +96,16 @@ def visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time
     target_od_startend_times_all_list = []
 
     for target in df_nicer_vis_timeflt['target_name']:
+
         # Filter target catalog
         targetcat_df_srcflt = targetcat_df_nosourceduplicates[
-            targetcat_df_nosourceduplicates['Source'] == target].reset_index(drop=True)
+            targetcat_df_nosourceduplicates['Source'].str.lower() == target.lower()
+            ].reset_index(drop=True)
+
+        # Check if target is in target catalog
+        if targetcat_df_srcflt.empty:
+            raise Exception('Target {} is not in target catalog, yet appears in visibility files - '
+                            'ingest it into target catalog'.format(target))
 
         # Times at which to calculate Sun angles
         time_start_end_allvis = np.array([start_timeofint.to_julian_date() - 2400000.5,
@@ -107,7 +116,7 @@ def visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time
                                                 targetcat_df_srcflt['DECJ_DEG'].loc[0].item())
 
         # Filter out sources with undesired sun angle ranges
-        # Done here to avoid espensive bright_earth angle calculation
+        # Done here to avoid expensive bright_earth angle calculation
         if (sunangles[0] < sa_ll) or (sunangles[0] > sa_ul):
             target_outside_sunangle.append(target)
             continue
@@ -147,14 +156,20 @@ def visibilitytargetcat(catalog_name, ags3, iss_orbit_file, start_time, end_time
     # Convert the od start-stop times list into a DataFrame
     target_od_startend_times_all = pd.concat(target_od_startend_times_all_list, axis=0).reset_index(drop=True)
 
+    if saveresults:
+        df_nicer_vis_timeflt.to_parquet(outputFile + '_vis.parquet')
+        target_brightearth_all_df.to_parquet(outputFile + '_brightearth.parquet')
+        target_od_startend_times_all.to_parquet(outputFile + '_od_startend_times.parquet')
+        od_windows.to_parquet(outputFile + '_odbounds.parquet')
+
     # Create a plotly html file - interactive plot
     if outputFile is not None:
         visibilityplot_plotly(df_nicer_vis_timeflt, target_brightearth_all_df, target_od_startend_times_all,
-                              start_timeofint, end_timeofint, freq_bound=60, outputFile=outputFile)
+                              od_windows, start_timeofint, end_timeofint, freq_bound=60, outputFile=outputFile)
     else:
         logger.info('No visibility plot created.')
 
-    return df_nicer_vis_timeflt, target_brightearth_all_df, target_od_startend_times_all
+    return df_nicer_vis_timeflt, target_brightearth_all_df, target_od_startend_times_all, od_windows
 
 
 def orbittimes(start_time, end_time, freq_bound):
@@ -356,8 +371,8 @@ def bright_earth_targetvis(issorbitdata, df_nicer_vis, od_windows, srcname, srcR
     return targetbright_earth_df, target_od_startend_times
 
 
-def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_times, start_time, end_time,
-                          freq_bound=60, outputFile='visibilityplot'):
+def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_times, od_windows, start_time,
+                          end_time, freq_bound=60, outputFile='visibilityplot'):
     """
     :param nicer_vis: NICER target visibilities
     :type nicer_vis: pandas.DataFrame
@@ -369,12 +384,13 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
     :type start_time: pandas.Timestamp
     :param end_time: End time of visibility window
     :type end_time: pandas.Timestamp
+    :param od_windows: orbit-day windows (essentially day-night boundaries)
+    :type od_windows: pandas.DataFrame
     :param freq_bound: frequency of timestamps between start_time and end_time in seconds
     :type freq_bound: int
     :param outputFile: name of output file (default = "visibilityplot")
     :type outputFile: str
     """
-
     # Create combined y-axis labels in the format (target_ID, target_name, sunangle_start, sunangle_trend)
     nicer_vis["label"] = nicer_vis.apply(
         lambda row: f"({row['target_id']}, {row['target_name']}, {row['sunangle_start']:.2f}, {row['sunangle_trend']})",
@@ -408,22 +424,21 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
         ))
 
     # 2) Day windows as shapes
-    # No need for this anymore - this is defined through bright_earth angle colormaps
-    #for _, block in od_windows.iterrows():
-    #    od_start_time = block['start_time']
-    #    od_end_time = block['end_time']
-    #    color = "yellow"
-    #    fig.add_shape(
-    #        type="rect",
-    #        x0=od_start_time - pd.Timedelta(seconds=freq_bound / 2),
-    #        x1=od_end_time + pd.Timedelta(seconds=freq_bound / 2),
-    #        y0=0,  # from bottom to top of the entire plot
-    #        y1=1,
-    #        fillcolor=color,
-    #        opacity=0.2,
-    #        layer="below",
-    #        line_width=0
-    #    )
+    for _, block in od_windows.iterrows():
+        od_start_time = block['start_time']
+        od_end_time = block['end_time']
+        color = "yellow"
+        fig.add_shape(
+            type="rect",
+            x0=od_start_time,
+            x1=od_end_time,
+            y0=0,  # from bottom to top of the entire plot
+            y1=1,
+            fillcolor=color,
+            opacity=0.3,
+            layer="below",
+            line_width=0
+        )
 
     # 3) Red vertical lines for times of interest
     fig.add_shape(
@@ -474,10 +489,10 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
                 # Let's do a continuous scale from 40..150. We'll use Matplotlib for convenience
                 br_val = group_target_od.loc[i, 'brightearth']
 
-                #cmap = colormaps['Set1']
-                #norm = mcolors.Normalize(vmin=40, vmax=150)
-                #rgba = cmap(norm(br_val))  # returns (r, g, b, a)
-                #color_hex = mcolors.to_hex(rgba)
+                # cmap = colormaps['Set1']
+                # norm = mcolors.Normalize(vmin=40, vmax=150)
+                # rgba = cmap(norm(br_val))  # returns (r, g, b, a)
+                # color_hex = mcolors.to_hex(rgba)
 
                 cmap = colormaps['Set1']
                 boundaries = [40, 60, 70, 80, 90, 100, 110, 120, 130, 180]
@@ -516,7 +531,7 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
             ticktext=list(label_mapping.keys()),
             range=[-0.02, 1.02]  # a bit of padding
         ),
-        width=1500, height=1000,
+        width=1300, height=1000,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
@@ -525,7 +540,8 @@ def visibilityplot_plotly(nicer_vis, target_brightearth, alltargets_od_startend_
     fig.update_xaxes(tickangle=45, range=[start_time - pd.Timedelta(seconds=freq_bound / 2),
                                           end_time + pd.Timedelta(seconds=freq_bound / 2)])
 
-    fig.write_html('./' + outputFile + '.html')
+    if isinstance(outputFile, str):
+        fig.write_html(f'./{outputFile}.html')
 
     return fig
 
@@ -551,6 +567,9 @@ def main():
     parser.add_argument("-of", "--outputFile", help="Name of output visibility plot "
                                                     "(default = visibilityplot(.html))", type=str,
                         default='ToADiagnosticsPlot')
+    parser.add_argument("-sr", "--saveresults", help="Boolean to save dataframes to csv files "
+                                                     "(default = False)", type=bool, default=False,
+                        action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
 
@@ -565,11 +584,10 @@ def main():
                          "14400 seconds (4 hours).")
 
     visibilitytargetcat(args.catalog_name, args.ags3, args.iss_orbit_file, args.start_time, args.end_time,
-                        args.freq_bound, args.freq_brearth, args.sa_ll, args.sa_ul, args.outputFile)
+                        args.freq_bound, args.freq_brearth, args.sa_ll, args.sa_ul, args.outputFile, args.saveresults)
 
     execution_end_time = time.time()
-    print(' Script ran to completion in {} minutes.\n Please check {}.html for the visibility plot'.format(
-        (execution_end_time - execution_start_time) / 60, args.outputFile))
+    print(' Script ran to completion in {} minutes.'.format((execution_end_time - execution_start_time) / 60))
 
     return None
 

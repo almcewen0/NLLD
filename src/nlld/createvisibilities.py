@@ -28,6 +28,7 @@ sys.dont_write_bytecode = True
 ############
 logger = get_logger(__name__)
 
+
 def download_onetarget_visibility(ra, dec, download_dir):
     """
     Download to 'download_dir' the NICER enhanced visibilities given RA and DEC

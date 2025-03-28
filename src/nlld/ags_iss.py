@@ -74,6 +74,7 @@ def read_target_catalog(targetcatalog):
 
     return targetcat_df, targetcat_df_nosourceduplicates, targetcat_header
 
+
 def read_ags3_vis_file(ags3_vis_file):
     """
     Read-in AGS NICER visibility file as a dataframe
