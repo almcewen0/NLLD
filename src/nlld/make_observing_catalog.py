@@ -191,6 +191,7 @@ def make_target_files(data,outfile):
                 for ln in data[key].to_numpy():
                     tmp.write(f"{ln[0]},{ln[1]},{ln[2]},{ln[3]},,\n")
         tmp.close()
+    print(f"{outfile}_{key.split('/')[-1].split('_')[0]}_{today}.csv written")
 
 def generate_random_pointings(ra_min, ra_max, dec_min, dec_max, n_points=10):
     """
