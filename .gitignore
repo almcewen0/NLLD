@@ -1,0 +1,8 @@
+src/nlld/source_catalogs/4XMM_DR13cat_v1.0_full.fits
+src/nlld/source_catalogs/4XMM_targets.csv
+src/nlld/source_catalogs/NICER2_Xray_Target_List_V42t.csv
+src/nlld/source_catalogs/eRASS1_Hard.v1.0.fits
+src/nlld/source_catalogs/eRASS1_Main.v1.1.fits
+src/nlld/source_catalogs/eROSITA_targets.csv
+src/nlld/targets_*
+src/nlld/__pycache__/
