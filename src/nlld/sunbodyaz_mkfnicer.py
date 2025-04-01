@@ -1,5 +1,5 @@
 """
-Derive Altitude and Azimuth sun angles with respect to NICER, and
+Derive Altitude and Azimuth sun angles with respect to NICER reference frame, and
 add them to a mkf file
 """
 

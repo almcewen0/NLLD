@@ -20,8 +20,8 @@ The code has been tested on Python 3.9.16
 
 ## Scripts
 
-Upon installation, these command line scripts will be available to you: **mkfdiagnostics**,
-**comparemkfs**, and **ags3withbrightearth**. You can get their help messages and the list of required and optional arguments with the usual '-h' 
+Upon installation, these command line scripts will be available to
+you: **mkfdiagnostics** and **comparemkfs**. You can get their help messages and the list of required and optional arguments with the usual '-h' 
 option.
 
 ## Notebooks
